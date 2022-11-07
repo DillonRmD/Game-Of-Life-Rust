@@ -1,4 +1,6 @@
 use rand::distributions::{Distribution, Uniform};
+use colored::Colorize;
+
 pub struct Settings{
     pub width: usize,
     pub height: usize,
@@ -50,26 +52,37 @@ impl GameState{
         let mut rng = rand::thread_rng();
         let mut live_cells_placed: usize = 0;
         
-        for i in 0..self.game_settings.height{
-            for j in 0..self.game_settings.width{
-                
-                let outcome: u32 = step.sample(&mut rng);
-                if outcome >= 50 {
-                    self.board[i][j] = 1;
-                    live_cells_placed += 1;
-                }
-
-                if live_cells_placed >= self.num_alive{
-                    return;
+        while live_cells_placed < self.num_alive{
+            for i in 0..self.game_settings.height{
+                for j in 0..self.game_settings.width{
+                    
+                    let outcome: u32 = step.sample(&mut rng);
+                    if outcome >= 50 {
+                        self.board[i][j] = 1;
+                        live_cells_placed += 1;
+                    }
+    
+                    if live_cells_placed >= self.num_alive{
+                        return;
+                    }
                 }
             }
         }
+        
     }
 
     pub fn print_board(&mut self){
         for i in 0..self.game_settings.height{
             for j in 0..self.game_settings.width {
-                print!("{} ", self.board[i][j]);
+                
+                if self.board[i][j] == 1{
+                    print!("{} ", format!("1").green());
+                }
+                else{
+                    print!("{} ", format!("0").red());
+                }
+                
+                
             }
             print!("\n");
         }
@@ -163,7 +176,7 @@ fn main() {
     let mut game_state = GameState::new(game_settings);
     game_state.initialize_game();
     
-    for cycle in 0..game_state.game_settings.life_cycles{
+    for _ in 0..game_state.game_settings.life_cycles{
         game_state.iterate();
         game_state.print_cycle();
     }
