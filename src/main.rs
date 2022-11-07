@@ -1,4 +1,5 @@
-
+use rand::Rng;
+use rand::distributions::{Distribution, Uniform};
 pub struct Settings{
     pub width: usize,
     pub height: usize,
@@ -47,6 +48,25 @@ impl GameState{
 
     pub fn initialize_game(&mut self){
         
+        
+        let step: Uniform<u32> = Uniform::new(1, 100);
+        let mut rng = rand::thread_rng();
+        let mut live_cells_placed: usize = 0;
+        
+        for i in 0..self.game_settings.height{
+            for j in 0..self.game_settings.width{
+                
+                let outcome = step.sample(&mut rng);
+                if outcome >= 50 {
+                    self.board[i][j] = 1;
+                    live_cells_placed += 1;
+                }
+
+                if live_cells_placed >= self.num_alive{
+                    return;
+                }
+            }
+        }
     }
 
     pub fn print_board(&mut self){
@@ -59,6 +79,7 @@ impl GameState{
     }
 
     pub fn iterate(&mut self){
+        
         self.curr_cycle += 1;
     }
 
@@ -77,10 +98,11 @@ fn main() {
     let game_settings: Settings = Settings::new(8, 8, 10, 10);
 
     let mut game_state = GameState::new(game_settings);
-
+    game_state.initialize_game();
+    
     for cycle in 0..game_state.game_settings.life_cycles{
         game_state.iterate();
-        game_state.print_cycle();   
+        game_state.print_cycle();
     }
 
 }
