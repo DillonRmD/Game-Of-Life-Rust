@@ -1,4 +1,3 @@
-use rand::Rng;
 use rand::distributions::{Distribution, Uniform};
 pub struct Settings{
     pub width: usize,
@@ -27,7 +26,6 @@ pub struct GameState {
     pub board: Vec<Vec<u32>>,
 
     pub num_alive: usize,
-    pub num_dead: usize,
     pub total: usize,
 
     pub curr_cycle: usize,
@@ -41,7 +39,6 @@ impl GameState{
             total: settings.initial_alive,
             board: vec![vec![0; settings.width]; settings.height],
             game_settings: settings,
-            num_dead: 0,
             curr_cycle: 0,
         }
     }
@@ -56,7 +53,7 @@ impl GameState{
         for i in 0..self.game_settings.height{
             for j in 0..self.game_settings.width{
                 
-                let outcome = step.sample(&mut rng);
+                let outcome: u32 = step.sample(&mut rng);
                 if outcome >= 50 {
                     self.board[i][j] = 1;
                     live_cells_placed += 1;
@@ -80,6 +77,73 @@ impl GameState{
 
     pub fn iterate(&mut self){
         
+        for i in 0..self.game_settings.height {
+            for j in 0..self.game_settings.width {
+                
+                let mut alive_neighbors:usize = 0;
+
+                //right
+                if j + 1 < self.game_settings.width && self.board[i][j + 1] == 1 {
+                    alive_neighbors += 1;
+                }
+
+                //left
+                if j > 0 && self.board[i][j - 1] == 1 {
+                    alive_neighbors += 1;
+                }
+
+                //up
+                if i > 0 && self.board[i - 1][j] == 1 {
+                    alive_neighbors += 1;
+                }
+
+                //down
+                if i + 1 < self.game_settings.height && self.board[i + 1][j] == 1 {
+                    alive_neighbors += 1;
+                }
+
+                //up-left
+                if i > 0 && j > 0 && self.board[i - 1][j - 1] == 1 {
+                    alive_neighbors += 1;
+                }
+
+                //up-right
+                if i > 0 && j + 1 < self.game_settings.width && self.board[i - 1][j + 1] == 1 {
+                    alive_neighbors += 1;
+                }
+
+                //down-left
+                if i + 1 < self.game_settings.height && j > 0 && self.board[i + 1][j - 1] == 1 {
+                    alive_neighbors += 1;
+                }
+
+                //down-right
+                if i + 1 < self.game_settings.height && j + 1 < self.game_settings.width && self.board[i + 1][j + 1] == 1{
+                    alive_neighbors += 1;
+                }
+
+                if self.board[i][j] == 1{
+                    if alive_neighbors < 2{
+                        self.board[i][j] = 0;
+                    }
+    
+                    if alive_neighbors == 2 || alive_neighbors == 3{
+                        self.board[i][j] = 1;
+                    }
+    
+                    if alive_neighbors > 3{
+                        self.board[i][j] = 0;
+                    }
+                }
+                else if self.board[i][j] == 0{
+                    if alive_neighbors == 3{
+                        self.board[i][j] = 1;
+                    }
+                }
+                
+            }
+        }
+
         self.curr_cycle += 1;
     }
 
@@ -87,7 +151,6 @@ impl GameState{
         println!("Life Cycle: {}", self.curr_cycle);
         println!("Total Cells: {}", self.total);
         println!("Alive Cells: {}", self.num_alive);
-        println!("Dead Cells: {}", self.num_dead);
         self.print_board();
         print!("\n");
     }
