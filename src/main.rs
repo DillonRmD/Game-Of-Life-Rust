@@ -28,7 +28,6 @@ pub struct GameState {
     pub board: Vec<Vec<u32>>,
 
     pub num_alive: usize,
-    pub total: usize,
 
     pub curr_cycle: usize,
 }
@@ -38,7 +37,6 @@ impl GameState{
     pub fn new(settings: Settings) -> Self {
         GameState{
             num_alive: settings.initial_alive,
-            total: settings.initial_alive,
             board: vec![vec![0; settings.width]; settings.height],
             game_settings: settings,
             curr_cycle: 0,
@@ -52,12 +50,12 @@ impl GameState{
         let mut rng = rand::thread_rng();
         let mut live_cells_placed: usize = 0;
         
-        while live_cells_placed < self.num_alive{
+        while live_cells_placed < self.num_alive {
             for i in 0..self.game_settings.height{
                 for j in 0..self.game_settings.width{
                     
                     let outcome: u32 = step.sample(&mut rng);
-                    if outcome >= 50 {
+                    if outcome >= 50 && self.board[i][j] != 1 {
                         self.board[i][j] = 1;
                         live_cells_placed += 1;
                     }
@@ -138,6 +136,7 @@ impl GameState{
                 if self.board[i][j] == 1{
                     if alive_neighbors < 2{
                         self.board[i][j] = 0;
+                        self.num_alive -= 1;
                     }
     
                     if alive_neighbors == 2 || alive_neighbors == 3{
@@ -146,11 +145,13 @@ impl GameState{
     
                     if alive_neighbors > 3{
                         self.board[i][j] = 0;
+                        self.num_alive -= 1;
                     }
                 }
                 else if self.board[i][j] == 0{
                     if alive_neighbors == 3{
                         self.board[i][j] = 1;
+                        self.num_alive += 1;
                     }
                 }
                 
@@ -162,7 +163,6 @@ impl GameState{
 
     pub fn print_cycle(&mut self){
         println!("Life Cycle: {}", self.curr_cycle);
-        println!("Total Cells: {}", self.total);
         println!("Alive Cells: {}", self.num_alive);
         self.print_board();
         print!("\n");
